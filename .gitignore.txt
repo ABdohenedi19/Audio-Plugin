@@ -1,0 +1,15 @@
+Builds/
+Build/
+*.suo
+*.user
+*.userprefs
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.xcodeproj
+*.xcworkspace
+*.DS_Store
+*.idea/
+*.vs/
+*.vscode/
