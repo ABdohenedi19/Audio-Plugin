@@ -24,6 +24,26 @@ auto getChorusFeedbackName() { return juce::String("Chorus Feedback %"); }
 auto getChorusDepthName() { return juce::String("Chorus Depth %"); }
 auto getChorusMixName() { return juce::String("Chorus Mix %"); }
 
+auto getOverdriveSaturationName() { return juce::String("Overdrive Saturation"); }
+
+auto getLadderfilterModeName() { return juce::String("Ladder filter Mode"); }
+auto getLadderfilterCutoffName() { return juce::String("Ladder filter CutoffHz "); }
+auto getLadderfilterResoneceName() { return juce::String("Ladder filter Resonece"); }
+auto getLadderfilterDriveName() { return juce::String("Ladder filter Drive"); }
+
+
+auto getLadderFilterChoices()
+{
+    return juce::StringArray
+    {
+        "LPF12",  // low-pass  12 dB/octave
+        "HPF12",  // high-pass 12 dB/octave
+        "BPF12",  // band-pass 12 dB/octave
+        "LPF24",  // low-pass  24 dB/octave
+        "HPF24",  // high-pass 24 dB/octave
+        "BPF24"   // band-pass 24 dB/octave
+    };
+}
 
 //==============================================================================
 AudioPluginprojectAudioProcessor::AudioPluginprojectAudioProcessor()
@@ -51,7 +71,13 @@ AudioPluginprojectAudioProcessor::AudioPluginprojectAudioProcessor()
         &chorusCenterDelayMs,
         &chorusFeedbackPercent,
         &chorusDepthPercent ,
-        &chorusMixPercent 
+        &chorusMixPercent,
+
+        &overdriveSaturation,
+
+        &LadderFilterCutoffHz,
+        &LadderFilterResonence,
+        &LadderFilterDrive
     };   
 
     auto floatNameFuncs = std::array
@@ -67,7 +93,13 @@ AudioPluginprojectAudioProcessor::AudioPluginprojectAudioProcessor()
         &getChorusCenterDelayName,
         &getChorusFeedbackName,
         &getChorusDepthName,
-        &getChorusMixName
+        &getChorusMixName,
+
+        &getOverdriveSaturationName,
+
+        &getLadderfilterCutoffName,
+        &getLadderfilterResoneceName,
+        &getLadderfilterDriveName
     };
 
 
@@ -80,8 +112,10 @@ AudioPluginprojectAudioProcessor::AudioPluginprojectAudioProcessor()
         jassert(*ptrToParamptr != nullptr);
     }
 
+    LadderFilterMode = dynamic_cast<juce::AudioParameterChoice*>(
+        apvts.getParameter(getLadderfilterModeName()));
 
-
+     jassert(LadderFilterMode != nullptr);
 }
 
 AudioPluginprojectAudioProcessor::~AudioPluginprojectAudioProcessor()
@@ -320,6 +354,73 @@ juce::AudioProcessorValueTreeState::ParameterLayout AudioPluginprojectAudioProce
         , juce::NormalisableRange<float>(0.01f, 1.f, 0.01f, 1.f)
         , 0.05f
         , "%"));
+
+
+    /*
+        overdrive:
+        use the drive portion of the ladder filter class for now
+
+        drive : 1 to 100
+    
+    
+    */
+
+    // drive : 1 to 100
+    
+    name = getOverdriveSaturationName();
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{ name,VirsionHint }
+        , name
+        , juce::NormalisableRange<float>(1.f, 100.f, 0.1f, 1.f)
+        , 1.f
+        , ""));
+
+    /*
+    Ladder filter:
+        Mode : LadderFilter Mode enum(int)
+        cutoff :  Hz
+        resonece :0 to 1
+        drive: 1 to 100
+        
+    */
+
+    // Mode : LadderFilter Mode enum(int)
+
+    name = getLadderfilterModeName();
+    auto choices = getLadderFilterChoices();
+
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID {name,VirsionHint},name,choices,0));
+
+    // Cutoff : Hz
+
+    name = getLadderfilterCutoffName();
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{ name,VirsionHint }
+        , name
+        , juce::NormalisableRange<float>(20.f, 2000.f, 0.1f, 1.f)
+        , 2000.f
+        , "Hz"));
+
+    // Resonece 0 to 1
+
+    name = getLadderfilterResoneceName();
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{ name,VirsionHint }
+        , name
+        , juce::NormalisableRange<float>(0.f, 1.f, 0.01f, 1.f)
+        , 0.f
+        , ""));
+
+    // drive: 1 to 100
+
+    name = getLadderfilterDriveName();
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{ name,VirsionHint }
+        , name
+        , juce::NormalisableRange<float>(1.f, 100.f, 0.1f, 1.f)
+        , 1.f
+        , ""));
 
     return layout;
  }
