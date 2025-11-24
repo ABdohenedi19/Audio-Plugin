@@ -9,6 +9,22 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+ // phaser : Parameter Name Funcs
+auto getPhaserRateName() { return juce::String("Phaser RateHz"); }
+auto getPhaserCenterFreqName() { return juce::String("Phaser Center FreqHz "); }
+auto getPhaserFeedbackName() { return juce::String("Phaser Feedback %"); }
+auto getPhaserDepthName() { return juce::String("Phaser Depth %"); }
+auto getPhaserMixName() { return juce::String("Phaser Mix %"); }
+
+
+// chorus : Parameter Name Funcs
+auto getChorusRateName() { return juce::String("Chorus RateHz"); }
+auto getChorusCenterDelayName() { return juce::String("Chorus Center Delay Ms "); }
+auto getChorusFeedbackName() { return juce::String("Chorus Feedback %"); }
+auto getChorusDepthName() { return juce::String("Chorus Depth %"); }
+auto getChorusMixName() { return juce::String("Chorus Mix %"); }
+
+
 //==============================================================================
 AudioPluginprojectAudioProcessor::AudioPluginprojectAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -22,6 +38,38 @@ AudioPluginprojectAudioProcessor::AudioPluginprojectAudioProcessor()
                        )
 #endif
 {
+
+    auto floatParams = std::array
+    {
+        &phaserRateHz,
+        &phaserCenterFreqHz,
+        &phaserDepthPercent,
+        &phaserFeedbackPercent,
+        &phaserMixPercent
+    };
+
+    auto floatNameFuncs = std::array
+    {
+
+        &getPhaserRateName,
+        &getPhaserCenterFreqName,
+        &getPhaserDepthName,
+        &getPhaserFeedbackName,
+        &getPhaserMixName
+    };
+
+
+    for (size_t i = 0; i < floatParams.size(); i++)
+    {
+        auto ptrToParamptr = floatParams[i];
+        *ptrToParamptr = dynamic_cast<juce::AudioParameterFloat*>(
+            apvts.getParameter(floatNameFuncs[i]()));
+
+        jassert(*ptrToParamptr != nullptr);
+    }
+
+
+
 }
 
 AudioPluginprojectAudioProcessor::~AudioPluginprojectAudioProcessor()
@@ -129,6 +177,92 @@ bool AudioPluginprojectAudioProcessor::isBusesLayoutSupported (const BusesLayout
 }
 #endif
 
+juce::AudioProcessorValueTreeState::ParameterLayout AudioPluginprojectAudioProcessor::CreateParameterLayout()
+{
+    juce::AudioProcessorValueTreeState::ParameterLayout layout;
+
+    const int VirsionHint = 1;
+    /*
+       Phaser:
+           Rate : Hz
+           Depth :  0 to 1
+           feedback : -1 to +1
+           Center Freq: Hz
+           Mix : 0 to 1
+
+
+
+  */
+
+    
+    // phaser rate hz
+    auto name = getPhaserRateName();
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{ name,VirsionHint }
+        , name
+        , juce::NormalisableRange<float>(0.01f, 2.f, 0.01f, 1.f)
+        , 0.2f
+        , "Hz"));
+
+    // phaser depth 0 -> 1
+
+     name = getPhaserDepthName();
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{ name,VirsionHint }
+        , name
+        , juce::NormalisableRange<float>(0.01f, 1.f, 0.01f, 1.f)
+        , 0.05f
+        , "%"));
+
+
+
+    // phaser Center freq Hz
+     name = getPhaserCenterFreqName();
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{ name,VirsionHint }
+        , name
+        , juce::NormalisableRange<float>(20.f, 2000.f, 1.f, 1.f)
+        , 1000.f
+        , "Hz"));
+
+    // phaser feedback -1 -> 1
+
+     name = getPhaserFeedbackName();
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{ name,VirsionHint }
+        , name
+        , juce::NormalisableRange<float>(-1.f, 1.f, 0.01f, 1.f)
+        , 0.0f
+        , "%"));
+
+    // phaser Mix 0 -> 1
+
+     name = getPhaserMixName();
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{ name,VirsionHint }
+        , name
+        , juce::NormalisableRange<float>(0.01f, 1.f, 0.01f, 1.f)
+        , 0.05f
+        , "%"));
+
+
+    /*
+    Chours:
+        Rate : Hz
+        Depth :  0 to 1
+        feedback : -1 to +1
+        Center delay: ms (1 to 100)
+        Mix : 0 to 1
+
+
+
+    */
+
+
+
+    return layout;
+ }
+
 void AudioPluginprojectAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
@@ -144,18 +278,69 @@ void AudioPluginprojectAudioProcessor::processBlock (juce::AudioBuffer<float>& b
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    // Make sure to reset the state if your inner loop is processing
-    // the samples and the outer loop is handling the channels.
-    // Alternatively, you can process the samples with the channels
-    // interleaved by keeping the same state.
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-    {
-        auto* channelData = buffer.getWritePointer (channel);
 
-        // ..do something to the data...
+    //TODO: add APVTs
+    //TODO: create Audio parameters for each dsp choice
+    //TODO: update dsp here from audio parameters
+    //TODO: save \ load settings
+    //TODO: save \ load dsp orders
+    //TODO: drag to record GUI
+    //TODO: GUI design for each dsp instence ?
+    //TODO: metering 
+    //TODO: perpare all DSP
+    
+
+    auto newDSPOrder =  DSP_Order();
+
+
+    while (dsporderfifo.pull(newDSPOrder))
+    {
+
     }
+
+    if (newDSPOrder != DSP_Order())
+    {
+        dspOrder = newDSPOrder;
+    }
+
+    DSP_Pointers DspPointers;
+
+
+    for (size_t i = 0; i < DspPointers.size(); ++i)
+    {
+        switch (dspOrder[i])
+        {
+            case DSP_Option::Phase:
+                DspPointers[i] = &pharser;
+                break;
+            case DSP_Option::Chorus:
+                DspPointers[i] = &choruser;
+                break;
+            case DSP_Option::OverDrive:
+                DspPointers[i] = &overdrive;
+                break;
+            case DSP_Option::LadderFilter:
+                DspPointers[i] = &ladderfilter;
+                break;
+            case DSP_Option::End_Of_List:
+                jassertfalse;
+                break;
+        }
+    }
+
+
+    auto block = juce::dsp::AudioBlock<float>(buffer);
+    auto context = juce::dsp::ProcessContextReplacing<float>(block);
+
+    for (size_t i = 0; i < DspPointers.size(); ++i)
+    {
+        if (DspPointers[i] != nullptr)
+        {
+            DspPointers[i]->process(context);
+
+        }
+    }
+
 }
 
 //==============================================================================
