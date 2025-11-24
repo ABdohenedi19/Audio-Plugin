@@ -105,6 +105,24 @@ public:
    juce::AudioParameterFloat* chorusDepthPercent = nullptr;
    juce::AudioParameterFloat* chorusMixPercent = nullptr;
 
+   // overdrive
+
+   juce::AudioParameterFloat* overdriveSaturation = nullptr;
+
+   /*
+  Ladder filter:
+      Mode : LadderFilter Mode enum(int)
+      cutoff :  Hz
+      resonece :0 to 1
+      drive: 1 to 100
+
+  */
+
+   juce::AudioParameterChoice* LadderFilterMode = nullptr;
+   juce::AudioParameterFloat* LadderFilterCutoffHz = nullptr;
+   juce::AudioParameterFloat* LadderFilterResonence = nullptr;
+   juce::AudioParameterFloat* LadderFilterDrive = nullptr;
+
 private:
 
     DSP_Order dspOrder;
