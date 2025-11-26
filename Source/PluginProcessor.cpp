@@ -229,6 +229,26 @@ void AudioPluginprojectAudioProcessor::prepareToPlay (double sampleRate, int sam
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
+
+    juce::dsp::ProcessSpec spec;
+    spec.sampleRate = sampleRate;
+    spec.maximumBlockSize = samplesPerBlock;
+    spec.numChannels = getTotalNumInputChannels();
+
+    std::vector<juce::dsp::ProcessorBase*>dsp
+    {
+        &pharser,
+        &choruser,
+        &overdrive,
+        &ladderfilter,
+        &genralfilter
+    };
+
+    for (auto p : dsp)
+    {
+        p->prepare(spec);
+        p->reset();
+    }
 }
 
 void AudioPluginprojectAudioProcessor::releaseResources()
