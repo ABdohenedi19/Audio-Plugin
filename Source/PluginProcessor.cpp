@@ -546,13 +546,33 @@ void AudioPluginprojectAudioProcessor::processBlock (juce::AudioBuffer<float>& b
     //[Done]: add APVTs
     //[Done]: create Audio parameters for each dsp choice
     //TODO: update dsp here from audio parameters
-    //TODO: save \ load settings
+    //[Done]: save \ load settings
     //TODO: save \ load dsp orders
     //TODO: drag to record GUI
     //TODO: GUI design for each dsp instence ?
     //TODO: metering 
     //TODO: perpare all DSP
     
+
+    pharser.dsp.setRate(phaserRateHz->get());
+    pharser.dsp.setCentreFrequency(phaserCenterFreqHz->get());
+    pharser.dsp.setDepth(phaserDepthPercent->get());
+    pharser.dsp.setFeedback(phaserFeedbackPercent->get());
+    pharser.dsp.setMix(phaserMixPercent->get());
+
+    choruser.dsp.setRate(chorusRateHz->get());
+    choruser.dsp.setDepth(chorusDepthPercent->get());
+    choruser.dsp.setCentreDelay(chorusCenterDelayMs->get());
+    choruser.dsp.setFeedback(chorusFeedbackPercent->get());
+    choruser.dsp.setMix(chorusMixPercent->get());
+
+    overdrive.dsp.setDrive(overdriveSaturation->get());
+
+
+    ladderfilter.dsp.setMode(static_cast<juce::dsp::LadderFilterMode>(LadderFilterMode->getIndex()));
+    ladderfilter.dsp.setCutoffFrequencyHz(LadderFilterCutoffHz->get());
+    ladderfilter.dsp.setResonance(LadderFilterResonence->get());
+    ladderfilter.dsp.setDrive(LadderFilterDrive->get());
 
     auto newDSPOrder =  DSP_Order();
 
