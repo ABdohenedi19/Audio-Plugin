@@ -185,6 +185,7 @@ private:
 
     using DSP_Pointers = std::array < ProcessState, static_cast<size_t>(DSP_Option::End_Of_List)>;
 
+    #define VERIFY_BYPASS_FUNCTIONALITY false
 
 
     //==============================================================================
