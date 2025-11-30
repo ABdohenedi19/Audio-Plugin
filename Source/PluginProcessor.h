@@ -89,6 +89,7 @@ public:
    juce::AudioParameterFloat* phaserFeedbackPercent = nullptr;
    juce::AudioParameterFloat* phaserDepthPercent = nullptr;
    juce::AudioParameterFloat* phaserMixPercent = nullptr;
+   juce::AudioParameterBool* phaserBypass = nullptr;
 
    /*
       Chours:
@@ -105,10 +106,12 @@ public:
    juce::AudioParameterFloat* chorusFeedbackPercent = nullptr;
    juce::AudioParameterFloat* chorusDepthPercent = nullptr;
    juce::AudioParameterFloat* chorusMixPercent = nullptr;
+   juce::AudioParameterBool* chorusBypass = nullptr;
 
    // overdrive
 
    juce::AudioParameterFloat* overdriveSaturation = nullptr;
+   juce::AudioParameterBool* overdriveBypass = nullptr;
 
    /*
   Ladder filter:
@@ -123,6 +126,7 @@ public:
    juce::AudioParameterFloat* LadderFilterCutoffHz = nullptr;
    juce::AudioParameterFloat* LadderFilterResonence = nullptr;
    juce::AudioParameterFloat* LadderFilterDrive = nullptr;
+   juce::AudioParameterBool* LadderFilterBypass = nullptr;
 
    /*
        general filter: https://docs.juce.com/develop/structdsp_1_1IIR_1_1Coefficients.html
@@ -136,6 +140,9 @@ public:
    juce::AudioParameterFloat* GeneralFilterFreqHz = nullptr;
    juce::AudioParameterFloat* GeneralFilterQuality = nullptr;
    juce::AudioParameterFloat* GeneralFilterGain = nullptr;
+   juce::AudioParameterBool* GeneralFilterBypass = nullptr;
+
+   
 
 private:
 
