@@ -176,8 +176,14 @@ private:
     DSP_Choices<juce::dsp::LadderFilter<float>>overdrive, ladderfilter;
     DSP_Choices < juce::dsp::IIR::Filter<float>>genralfilter;
 
-    using DSP_Pointers = std::array < juce::dsp::ProcessorBase*,
-        static_cast<size_t>(DSP_Option::End_Of_List)>;
+
+    struct ProcessState
+    {
+        juce::dsp::ProcessorBase* processor = nullptr;
+        bool bypass = false;
+    };
+
+    using DSP_Pointers = std::array < ProcessState, static_cast<size_t>(DSP_Option::End_Of_List)>;
 
 
 

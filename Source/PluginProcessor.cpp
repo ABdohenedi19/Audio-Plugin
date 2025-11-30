@@ -195,10 +195,10 @@ AudioPluginprojectAudioProcessor::AudioPluginprojectAudioProcessor()
 
     for (size_t i = 0; i < BypassParams.size(); ++i)
     {
-        auto ptrToParamptr = BypassParams[i];
-        dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter(BypassNameFuncs[i]()));
+        auto ptrToParamPtr = BypassParams[i];
+        *ptrToParamPtr = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter(BypassNameFuncs[i]()));
 
-        jassert(*ptrToParamptr != nullptr);
+        jassert(*ptrToParamPtr != nullptr);
     }
 }
 
@@ -654,26 +654,31 @@ void AudioPluginprojectAudioProcessor::processBlock (juce::AudioBuffer<float>& b
     }
 
     DSP_Pointers DspPointers;
-    DspPointers.fill(nullptr);
+    DspPointers.fill({}); //this was previously that DspPointers.fill(nullptr);
 
     for (size_t i = 0; i < DspPointers.size(); ++i)
     {
         switch (dspOrder[i])
         {
             case DSP_Option::Phase:
-                DspPointers[i] = &pharser;
+                DspPointers[i].processor = &pharser;
+                DspPointers[i].bypass = phaserBypass->get();
                 break;
             case DSP_Option::Chorus:
-                DspPointers[i] = &choruser;
+                DspPointers[i].processor = &choruser;
+                DspPointers[i].bypass = chorusBypass->get();
                 break;
             case DSP_Option::OverDrive:
-                DspPointers[i] = &overdrive;
+                DspPointers[i].processor = &overdrive;
+                DspPointers[i].bypass = overdriveBypass->get();
                 break;
             case DSP_Option::LadderFilter:
-                DspPointers[i] = &ladderfilter;
+                DspPointers[i].processor = &ladderfilter;
+                DspPointers[i].bypass = LadderFilterBypass->get();
                 break;
             case DSP_Option::GenralFilter:
-                DspPointers[i] = &genralfilter;
+                DspPointers[i].processor = &genralfilter;
+                DspPointers[i].bypass = GeneralFilterBypass->get();
             case DSP_Option::End_Of_List:
                 jassertfalse;
                 break;
@@ -684,14 +689,14 @@ void AudioPluginprojectAudioProcessor::processBlock (juce::AudioBuffer<float>& b
     auto block = juce::dsp::AudioBlock<float>(buffer);
     auto context = juce::dsp::ProcessContextReplacing<float>(block);
 
-    //for (size_t i = 0; i < DspPointers.size(); ++i)
-    //{
-    //    if (DspPointers[i] != nullptr)
-    //    {
-    //        DspPointers[i]->process(context);
-
-    //    }
-    //}
+    for (size_t i = 0; i < DspPointers.size(); ++i)
+    {
+        if (DspPointers[i].processor != nullptr)
+        {
+            juce::ScopedValueSetter<bool>svs(context.isBypassed, DspPointers[i].bypass); DspPointers[i].bypass = phaserBypass->get();
+            DspPointers[i].processor->process(context);
+        }
+    }
 
 }
 
@@ -703,9 +708,9 @@ bool AudioPluginprojectAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* AudioPluginprojectAudioProcessor::createEditor()
 {
-   return new AudioPluginprojectAudioProcessorEditor (*this);
+   //return new AudioPluginprojectAudioProcessorEditor (*this);
 
-    //return new juce::GenericAudioProcessorEditor(*this);
+    return new juce::GenericAudioProcessorEditor(*this);
 }
 
 //==============================================================================
