@@ -1,4 +1,4 @@
-/*
+﻿/*
   ==============================================================================
 
     This file contains the basic framework code for a JUCE plugin processor.
@@ -74,6 +74,14 @@ AudioPluginprojectAudioProcessor::AudioPluginprojectAudioProcessor()
                        )
 #endif
 {
+
+    dspOrder =
+    { {
+        DSP_Option::Phase,
+        DSP_Option::Chorus,
+        DSP_Option::OverDrive,
+        DSP_Option::LadderFilter
+    } };
 
     auto floatParams = std::array
     {
@@ -543,15 +551,7 @@ void AudioPluginprojectAudioProcessor::processBlock (juce::AudioBuffer<float>& b
         buffer.clear (i, 0, buffer.getNumSamples());
 
 
-    //[Done]: add APVTs
-    //[Done]: create Audio parameters for each dsp choice
-    //TODO: update dsp here from audio parameters
-    //[Done]: save \ load settings
-    //TODO: save \ load dsp orders
-    //TODO: drag to record GUI
-    //TODO: GUI design for each dsp instence ?
-    //TODO: metering 
-    //TODO: perpare all DSP
+    
     
 
     pharser.dsp.setRate(phaserRateHz->get());
@@ -588,7 +588,7 @@ void AudioPluginprojectAudioProcessor::processBlock (juce::AudioBuffer<float>& b
     }
 
     DSP_Pointers DspPointers;
-
+    DspPointers.fill(nullptr);
 
     for (size_t i = 0; i < DspPointers.size(); ++i)
     {
@@ -637,34 +637,112 @@ bool AudioPluginprojectAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* AudioPluginprojectAudioProcessor::createEditor()
 {
-   // return new AudioPluginprojectAudioProcessorEditor (*this);
+   return new AudioPluginprojectAudioProcessorEditor (*this);
 
-    return new juce::GenericAudioProcessorEditor(*this);
+    //return new juce::GenericAudioProcessorEditor(*this);
 }
 
 //==============================================================================
-void AudioPluginprojectAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
-{
-    // You should use this method to store your parameters in the memory block.
-    // You could do that either as raw data, or use the XML or ValueTree classes
-    // as intermediaries to make it easy to save and load complex data.
 
-    juce::MemoryOutputStream mos(destData, false);
-    apvts.state.writeToStream(mos);
+static AudioPluginprojectAudioProcessor::DSP_Order fromVar(const juce::var&v)
+{
+    using T = AudioPluginprojectAudioProcessor::DSP_Order;
+    T dspOrder;
+
+    jassert(v.isBinaryData());
+
+    if (v.isBinaryData() == false)
+    {
+        dspOrder.fill(AudioPluginprojectAudioProcessor::DSP_Option::End_Of_List);
+    }
+    else
+    {
+        auto mb = *v.getBinaryData();
+        juce::MemoryInputStream mis(mb, false);
+        std::vector<int>arr;
+        while (!mis.isExhausted())
+        {
+            arr.push_back(mis.readInt());
+        }
+
+        jassert(arr.size() == dspOrder.size());
+
+        for (size_t i = 0; i < dspOrder.size(); ++i)
+        {
+            dspOrder[i] = static_cast<AudioPluginprojectAudioProcessor::DSP_Option>(arr[i]);
+        }
+        return dspOrder;
+    }
 }
 
-void AudioPluginprojectAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
+static juce::var ToVar( const AudioPluginprojectAudioProcessor::DSP_Order& t)
 {
-    // You should use this method to restore your parameters from this memory block,
-    // whose contents will have been created by the getStateInformation() call.
+    juce::MemoryBlock mb;
 
+    {
+        juce::MemoryOutputStream mos(mb, false);
+
+        for (auto v : t)
+        {
+            mos.writeInt(static_cast<int>(v));
+        }
+    };
+
+     return juce::var(mb);
+    
+}
+
+void AudioPluginprojectAudioProcessor::getStateInformation(juce::MemoryBlock& destData)
+{
+    
+    juce::MemoryBlock mb;
+    juce::MemoryOutputStream mos(mb, false);
+
+    for (auto v : dspOrder)
+        mos.writeInt(static_cast<int>(v));
+
+ 
+    apvts.state.setProperty("dspOrder", juce::var(mb), nullptr);
+
+    juce::MemoryOutputStream destStream(destData, false);
+    apvts.state.writeToStream(destStream);
+}
+
+
+void AudioPluginprojectAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
+{
     auto tree = juce::ValueTree::readFromData(data, sizeInBytes);
 
     if (tree.isValid())
     {
         apvts.replaceState(tree);
+
+        if (apvts.state.hasProperty("dspOrder"))
+        {
+         
+            juce::var v = apvts.state.getProperty("dspOrder");
+
+            if (v.isBinaryData())
+            {
+                auto mb = *v.getBinaryData();
+                juce::MemoryInputStream mis(mb, false);
+
+                AudioPluginprojectAudioProcessor::DSP_Order order;
+
+                for (size_t i = 0; i < order.size() && !mis.isExhausted(); i++)
+                {
+                    int x = mis.readInt();
+                    order[i] = static_cast<AudioPluginprojectAudioProcessor::DSP_Option>(x);
+                }
+
+                dsporderfifo.push(order);
+            }
+        }
+
+        DBG(apvts.state.toXmlString());
     }
 }
+
 
 //==============================================================================
 // This creates new instances of the plugin..
