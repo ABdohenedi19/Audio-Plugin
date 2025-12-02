@@ -1,4 +1,4 @@
-﻿/*
+/*
   ==============================================================================
 
     This file contains the basic framework code for a JUCE plugin processor.
@@ -145,14 +145,16 @@ AudioPluginprojectAudioProcessor::AudioPluginprojectAudioProcessor()
    
 
 
-    for (size_t i = 0; i < floatParams.size(); i++)
+   /* for (size_t i = 0; i < floatParams.size(); i++)
     {
         auto ptrToParamptr = floatParams[i];
         *ptrToParamptr = dynamic_cast<juce::AudioParameterFloat*>(
             apvts.getParameter(floatNameFuncs[i]()));
 
         jassert(*ptrToParamptr != nullptr);
-    }
+    }*/
+
+    initialCachedPrarms<juce::AudioParameterFloat*>(floatParams, floatNameFuncs);
 
     auto choiceParams = std::array
     {
@@ -166,14 +168,17 @@ AudioPluginprojectAudioProcessor::AudioPluginprojectAudioProcessor()
         &getGeneralFilterModeName
     };
 
-    for (size_t i = 0; i < choiceParams.size(); i++)
+    /*for (size_t i = 0; i < choiceParams.size(); i++)
     {
         auto ptrToParamptr = choiceParams[i];
         *ptrToParamptr = dynamic_cast<juce::AudioParameterChoice*>(
             apvts.getParameter(choiceNameFuncs[i]()));
 
         jassert(*ptrToParamptr != nullptr);
-    }
+    }*/
+
+    initialCachedPrarms<juce::AudioParameterChoice*>(choiceParams, choiceNameFuncs);
+
     auto BypassParams = std::array
     {
         &phaserBypass,
@@ -193,13 +198,15 @@ AudioPluginprojectAudioProcessor::AudioPluginprojectAudioProcessor()
         &getGeneralFilterBypassName
     };
 
-    for (size_t i = 0; i < BypassParams.size(); ++i)
+    /*for (size_t i = 0; i < BypassParams.size(); ++i)
     {
         auto ptrToParamPtr = BypassParams[i];
         *ptrToParamPtr = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter(BypassNameFuncs[i]()));
 
         jassert(*ptrToParamPtr != nullptr);
-    }
+    }*/
+
+    initialCachedPrarms<juce::AudioParameterBool*>(BypassParams, BypassNameFuncs);
 }
 
 AudioPluginprojectAudioProcessor::~AudioPluginprojectAudioProcessor()
