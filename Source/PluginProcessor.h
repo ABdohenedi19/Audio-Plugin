@@ -170,11 +170,31 @@ private:
 
     };
 
-    DSP_Choices<juce::dsp::DelayLine<float>> delay;
-    DSP_Choices<juce::dsp::Phaser<float>>pharser;
-    DSP_Choices<juce::dsp::Chorus<float>>choruser;
-    DSP_Choices<juce::dsp::LadderFilter<float>>overdrive, ladderfilter;
-    DSP_Choices < juce::dsp::IIR::Filter<float>>genralfilter;
+    struct MonoChannelDSP
+    {
+        MonoChannelDSP(AudioPluginprojectAudioProcessor& proc) : p(proc) {}
+
+        DSP_Choices<juce::dsp::DelayLine<float>> delay;
+        DSP_Choices<juce::dsp::Phaser<float>>pharser;
+        DSP_Choices<juce::dsp::Chorus<float>>choruser;
+        DSP_Choices<juce::dsp::LadderFilter<float>>overdrive, ladderfilter;
+        DSP_Choices < juce::dsp::IIR::Filter<float>>genralfilter;
+
+        void prepare(const juce::dsp::ProcessSpec& spec);
+
+        void updateDSPFromParams();
+
+        void process( juce::dsp::AudioBlock<float> block,const DSP_Order& dsp_order);
+
+
+    private:
+        AudioPluginprojectAudioProcessor& p;
+    };
+
+
+    MonoChannelDSP leftChannel{ *this };
+    MonoChannelDSP rightChannel{ *this };
+    
 
 
     struct ProcessState
